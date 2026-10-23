@@ -1,0 +1,335 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Flexistunden-Meldung</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#2742b0">
+<link rel="icon" href="icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Flexistunden">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<style>
+/* Layout: eine Spalte bis 900px – Kopf, Eingabe, eigene Einträge, Meldung erstellen. */
+:root{
+  --bg:#f3f5fa; --surface:#ffffff; --surface-2:#eaeef6; --ink:#121829; --ink-2:#454d66; --muted:#666d86; --line:#d6dbe7;
+  --accent:#2742b0; --accent-ink:#ffffff; --accent-soft:#e2e7fb;
+  --ok:#17703f; --ok-soft:#ddf1e5; --warn:#8a5a00; --warn-soft:#fbefd2; --crit:#b8322a; --crit-soft:#fbe2df;
+  --mehr:#2a78d6; --minder:#eb6834;
+  --f-display:"Bricolage Grotesque","Atkinson Hyperlegible",system-ui,sans-serif;
+  --f-body:"Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-num:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+  --r:10px; color-scheme:light;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0e121b; --surface:#161b27; --surface-2:#1e2432; --ink:#eef0f6; --ink-2:#b9bfd2; --muted:#8c93aa; --line:#2b3245;
+  --accent:#8299f2; --accent-ink:#0e121b; --accent-soft:#222b4b;
+  --ok:#55c98a; --ok-soft:#14301f; --warn:#e6b24c; --warn-soft:#33270b; --crit:#f17f74; --crit-soft:#3a1916;
+  --mehr:#3987e5; --minder:#d95926; color-scheme:dark}}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.5}
+.wrap{max-width:900px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1,h2{font-family:var(--f-display);margin:0;line-height:1.15;text-wrap:balance}
+h2{font-size:1.3rem}
+p{margin:0}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+button,input,select{font:inherit;color:inherit}
+.sr{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+header{background:var(--surface);border-bottom:1px solid var(--line)}
+header{padding-top:env(safe-area-inset-top,0px)}
+header .wrap{padding-block:20px 16px;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:12px}
+header h1{font-size:clamp(1.5rem,4vw,2.1rem);font-weight:800}
+header .sub{color:var(--ink-2);font-size:.95rem}
+.me{display:inline-flex;align-items:center;gap:8px;background:var(--accent-soft);color:var(--ink);border-radius:999px;padding:6px 12px;font-weight:700}
+main .wrap{padding-block:24px 56px;display:grid;gap:22px}
+.box{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:18px;display:grid;gap:16px;min-width:0}
+.box{grid-template-columns:minmax(0,1fr)}
+.box > *{grid-column:1/-1}
+.box.hl{border-color:var(--accent)}
+.sec-head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:8px 16px}
+.sec-head p,.note{color:var(--ink-2);font-size:.92rem}
+.form{display:grid;grid-template-columns:repeat(12,1fr);gap:14px 16px}
+.field{display:grid;gap:6px;grid-column:span 12;min-width:0}
+.field label,.field .lab{font-weight:700;font-size:.92rem}
+.help{font-size:.82rem;color:var(--muted)}
+@media (min-width:700px){.c4{grid-column:span 4}.c6{grid-column:span 6}.c8{grid-column:span 8}.c3{grid-column:span 3}}
+input[type=text],input[type=date],input[type=number],select{width:100%;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:9px 11px;min-height:44px}
+input:focus,select:focus{border-color:var(--accent)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips label{position:relative;cursor:pointer}
+.chips input{position:absolute;opacity:0;inset:0;cursor:pointer}
+.chips span{display:inline-flex;align-items:center;border:1px solid var(--line);border-radius:8px;padding:8px 14px;font-weight:700;min-height:44px;background:var(--surface)}
+.chips input:focus-visible + span{outline:3px solid var(--accent);outline-offset:2px}
+.chips input:checked + span.m-mehr{background:var(--mehr);border-color:var(--mehr);color:#fff}
+.chips input:checked + span.m-minder{background:var(--minder);border-color:var(--minder);color:#fff}
+.stepper{display:flex}
+.stepper button{width:46px;border:1px solid var(--line);background:var(--surface-2);font-size:1.2rem;font-weight:700;cursor:pointer}
+.stepper button:first-child{border-radius:8px 0 0 8px}
+.stepper button:last-child{border-radius:0 8px 8px 0}
+.stepper input{border-radius:0;text-align:center;border-left:0;border-right:0;font-family:var(--f-num)}
+.actions{grid-column:span 12;display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.btn{appearance:none;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:8px;padding:8px 14px;font-weight:700;cursor:pointer;min-height:44px;display:inline-flex;align-items:center;gap:6px}
+.btn:hover{border-color:var(--ink-2)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.danger{color:var(--crit)}
+.btn.small{min-height:34px;padding:4px 10px;font-size:.88rem}
+.btn[disabled]{opacity:.5;cursor:not-allowed}
+.msg{font-size:.92rem;color:var(--ink-2)}
+.msg.bad{color:var(--crit);font-weight:700}
+.sum{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.sum div{background:var(--surface-2);border-radius:8px;padding:10px 12px;display:grid}
+.sum .l{font-size:.78rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:700}
+.sum .v{font-family:var(--f-num);font-size:1.4rem;font-weight:600}
+.tscroll{overflow-x:auto;border:1px solid var(--line);border-radius:var(--r)}
+table{border-collapse:collapse;width:100%;font-size:.93rem}
+caption{text-align:left;padding:10px 12px;font-weight:700;color:var(--ink-2)}
+th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle}
+thead th{font-size:.78rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);background:var(--surface-2);white-space:nowrap}
+td.num{font-family:var(--f-num);text-align:right;white-space:nowrap}
+tbody tr:last-child td{border-bottom:0}
+.pill{display:inline-flex;font-size:.8rem;font-weight:700;padding:2px 9px;border-radius:999px;white-space:nowrap}
+.pill.mehr{background:color-mix(in oklab,var(--mehr) 16%,var(--surface))}
+.pill.minder{background:color-mix(in oklab,var(--minder) 18%,var(--surface))}
+.pill.neu{background:var(--warn-soft);color:var(--warn)}
+.pill.ok{background:var(--ok-soft);color:var(--ok)}
+.steps{margin:0;padding-left:22px;display:grid;gap:4px;color:var(--ink-2)}
+.empty{border:2px dashed var(--line);border-radius:var(--r);padding:22px;text-align:center;color:var(--ink-2)}
+.confirm{display:inline-flex;gap:6px;flex-wrap:wrap;align-items:center}
+footer .wrap{padding-block:0 32px;color:var(--muted);font-size:.85rem}
+</style>
+</head>
+<body>
+<div id="live" class="sr" aria-live="polite" aria-atomic="true"></div>
+<header><div class="wrap">
+  <div><h1>Flexistunden-Meldung</h1><p class="sub">Mehr- und Minderzeiten melden · Schuljahr <span id="sj">2026/2027</span></p></div>
+  <span class="me" id="meBadge" hidden></span>
+</div></header>
+
+<main><div class="wrap">
+
+  <!-- Einrichtung -->
+  <section class="box hl" id="setup" hidden aria-labelledby="setupH">
+    <div class="sec-head"><h2 id="setupH">Einrichten</h2></div>
+    <p class="note">Einmalig: Tragen Sie Ihr Kürzel ein, so wie es die Schulleitung vergeben hat (zum Beispiel LK3).</p>
+    <form class="form" id="setupForm" novalidate>
+      <div class="field c4"><label for="u-kuerzel">Ihr Kürzel</label><input type="text" id="u-kuerzel" autocomplete="off" required></div>
+      <div class="field c4"><label for="u-start">Beginn 1. Schulwoche</label><input type="date" id="u-start"></div>
+      <div class="field c4"><label for="u-ende">Letzter Schultag</label><input type="date" id="u-ende"></div>
+      <div class="actions"><button class="btn primary" type="submit">Speichern</button><button class="btn" type="button" id="setupCancel" hidden>Abbrechen</button><span class="msg" id="setupMsg"></span></div>
+    </form>
+  </section>
+
+  <div id="app" hidden style="display:grid;gap:22px">
+    <section class="box" aria-labelledby="formH">
+      <div class="sec-head"><h2 id="formH">Neuen Eintrag erfassen</h2><p>Stunden immer positiv eingeben.</p></div>
+      <form class="form" id="entryForm" novalidate>
+        <div class="field c4"><label for="f-datum">Datum</label><input type="date" id="f-datum"></div>
+        <div class="field c8"><span class="lab" id="lab-art">Art</span>
+          <div class="chips" role="radiogroup" aria-labelledby="lab-art">
+            <label><input type="radio" name="art" value="Mehrzeit" id="f-mehr" checked><span class="m-mehr">＋ Mehrzeit</span></label>
+            <label><input type="radio" name="art" value="Minderzeit" id="f-minder"><span class="m-minder">− Minderzeit</span></label>
+          </div></div>
+        <div class="field c8"><label for="f-anlass">Anlass</label><select id="f-anlass"></select><span class="help" id="anlassHelp"></span></div>
+        <div class="field c4"><label for="f-std">Unterrichtsstunden</label>
+          <div class="stepper"><button type="button" id="minus" aria-label="Eine halbe Stunde weniger">−</button><input type="number" id="f-std" value="1" min="0.5" step="0.5" inputmode="decimal"><button type="button" id="plus" aria-label="Eine halbe Stunde mehr">+</button></div></div>
+        <div class="field c4"><label for="f-klasse">Klasse / Fach</label><input type="text" id="f-klasse" autocomplete="off" placeholder="z. B. 2a / Deutsch"></div>
+        <div class="field c4"><label for="f-vertr">Vertretung für (Kürzel)</label><input type="text" id="f-vertr" autocomplete="off"></div>
+        <div class="field c4"><label for="f-bem">Bemerkung</label><input type="text" id="f-bem" autocomplete="off"></div>
+        <div class="actions"><button class="btn primary" type="submit" id="saveBtn">Eintrag speichern</button><button class="btn" type="button" id="cancelEdit" hidden>Bearbeiten abbrechen</button><span class="msg" id="formMsg"></span></div>
+      </form>
+    </section>
+
+    <section class="box hl" aria-labelledby="sendH">
+      <div class="sec-head"><h2 id="sendH">Meldung an die Schulleitung</h2><p id="sendState"></p></div>
+      <ol class="steps">
+        <li>„Meldung erstellen“ drücken.</li>
+        <li>Auf dem Handy öffnet sich das Teilen-Menü: Mail wählen. Die Meldung ist schon angehängt.</li>
+        <li>Die Adresse der Schulleitung eintragen und abschicken. Am PC landet die Datei stattdessen im Download-Ordner und wird von Hand angehängt.</li>
+      </ol>
+      <div class="actions">
+        <button class="btn primary" id="makeReport">Meldung erstellen</button>
+        <button class="btn" id="makeAll">Alle Einträge erneut melden</button>
+      </div>
+      <p class="msg" id="sendMsg" aria-live="polite"></p>
+    </section>
+
+    <section class="box" aria-labelledby="listH">
+      <div class="sec-head"><h2 id="listH">Meine Einträge</h2><p>Vorläufig, bis die Schulleitung geprüft hat.</p></div>
+      <div class="sum" id="sum"></div>
+      <div class="tscroll" id="list"></div>
+    </section>
+
+    <section class="box" aria-labelledby="optH">
+      <h2 id="optH">Einstellungen und Sicherung</h2>
+      <p class="note">Die Einträge werden nur in diesem Browser auf diesem PC gespeichert. Eine Sicherung hilft beim PC-Wechsel.</p>
+      <div class="actions">
+        <button class="btn" id="editSetup">Kürzel oder Schuljahr ändern</button>
+        <button class="btn" id="backup">Sicherung speichern</button>
+        <label class="btn" for="restore">Sicherung laden …</label><input type="file" id="restore" accept=".txt,.json,text/plain,application/json" class="sr">
+      </div>
+      <p class="msg" id="optMsg" aria-live="polite"></p>
+    </section>
+  </div>
+</div></main>
+<footer><div class="wrap"><p>Arbeitshilfe nach ArbZVO-Lehr LSA / Flexi-Erlass. Projekttage und Klassenfahrten werden dokumentiert, zählen aber nicht. Maßgeblich bleibt das Klassenbuch.</p></div></footer>
+
+<script>
+(() => {
+"use strict";
+const ANLAESSE = ["Vertretungsstunde","Zusatzunterricht / Förderstunde","Doppelbesetzung aufgelöst","Unterrichtsausfall (Klasse abwesend)","Unterrichtsausfall (Sonstiges)","Ausgleich: Freizeit für Mehrzeiten","Ausgleich: Nachholen von Minderzeiten","Projekttag (zählt nicht)","Klassenfahrt (zählt nicht)","Sonstiges"];
+const ART_HINT = {"Vertretungsstunde":"Mehrzeit","Zusatzunterricht / Förderstunde":"Mehrzeit","Ausgleich: Nachholen von Minderzeiten":"Mehrzeit","Doppelbesetzung aufgelöst":"Minderzeit","Unterrichtsausfall (Klasse abwesend)":"Minderzeit","Unterrichtsausfall (Sonstiges)":"Minderzeit","Ausgleich: Freizeit für Mehrzeiten":"Minderzeit"};
+const STORE = "flexistunden-meldung-v1";
+const S = {me:null, start:"2026-08-17", ende:"2027-07-09", e:[], editId:null, confirmDel:null, storeOk:true};
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const DAY = 86400000;
+const toD = iso => { if(!iso) return NaN; const [y,m,d] = iso.split("-").map(Number); return Date.UTC(y,m-1,d); };
+const todayIso = () => { const n = new Date(); return `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,"0")}-${String(n.getDate()).padStart(2,"0")}`; };
+const nf = new Intl.NumberFormat("de-DE",{maximumFractionDigits:1});
+const fmt = n => nf.format(Math.abs(n) < 1e-9 ? 0 : n).replace("-","−");
+const dLong = iso => { const t = toD(iso); if(isNaN(t)) return ""; const d = new Date(t); return `${String(d.getUTCDate()).padStart(2,"0")}.${String(d.getUTCMonth()+1).padStart(2,"0")}.${d.getUTCFullYear()}`; };
+const MONATE = ["Januar","Februar","März","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember"];
+const TAGE = ["Sonntag","Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag"];
+const dSpoken = iso => { const t = toD(iso); if(isNaN(t)) return ""; const d = new Date(t); return `${TAGE[d.getUTCDay()]}, ${d.getUTCDate()}. ${MONATE[d.getUTCMonth()]} ${d.getUTCFullYear()}`; };
+const zaehltNicht = a => /zählt nicht/i.test(a || "");
+const weekOf = iso => Math.floor((toD(iso) - toD(S.start)) / (7*DAY)) + 1;
+const say = msg => { const l = $("#live"); l.textContent = ""; setTimeout(() => l.textContent = msg, 30); };
+const uid = () => Math.random().toString(36).slice(2,9) + Date.now().toString(36);
+
+function persist(){ try{ localStorage.setItem(STORE, JSON.stringify({me:S.me, start:S.start, ende:S.ende, e:S.e})); S.storeOk = true; }catch(_){ S.storeOk = false; } }
+function load(){ try{ const d = JSON.parse(localStorage.getItem(STORE) || "null"); if(d){ S.me = d.me || null; S.start = d.start || S.start; S.ende = d.ende || S.ende; S.e = d.e || []; } }catch(_){ S.storeOk = false; } }
+async function shareOrDownload(name, text, title){
+  try{
+    const file = new File([text], name, {type:"text/plain"});
+    if(navigator.canShare && navigator.canShare({files:[file]})){
+      await navigator.share({files:[file], title, text:title});
+      return "shared";
+    }
+  }catch(e){ if(e && e.name === "AbortError") return "aborted"; }
+  download(name, text, "text/plain"); return "downloaded";
+}
+function download(name, text, type){ const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([text], {type})); a.download = name; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000); }
+
+/* Ansicht */
+function showSetup(cancelable){
+  $("#setup").hidden = false; $("#app").hidden = true; $("#meBadge").hidden = !S.me;
+  $("#u-kuerzel").value = S.me || ""; $("#u-start").value = S.start; $("#u-ende").value = S.ende;
+  $("#setupCancel").hidden = !cancelable; $("#u-kuerzel").focus();
+}
+function showApp(){
+  $("#setup").hidden = true; $("#app").hidden = false;
+  $("#meBadge").hidden = false; $("#meBadge").textContent = `Kürzel ${S.me}`;
+  const y1 = new Date(toD(S.start)).getUTCFullYear(); $("#sj").textContent = `${y1}/${y1+1}`;
+  render();
+}
+function render(){
+  $("#f-anlass").innerHTML = ANLAESSE.map(a => `<option ${a === $("#f-anlass").value ? "selected" : ""}>${esc(a)}</option>`).join("");
+  $("#anlassHelp").textContent = zaehltNicht($("#f-anlass").value) ? "Wird dokumentiert, aber mit 0 Stunden angerechnet." : "";
+  const rows = [...S.e].sort((a,b) => String(b.datum).localeCompare(String(a.datum)));
+  const offen = S.e.filter(e => !e.gemeldetAm).length;
+  $("#sendState").textContent = offen ? `${offen} ${offen === 1 ? "Eintrag" : "Einträge"} noch nicht gemeldet` : (S.e.length ? "Alles gemeldet" : "Noch keine Einträge");
+  $("#makeReport").disabled = !offen; $("#makeAll").disabled = !S.e.length;
+  let mehr = 0, minder = 0;
+  S.e.forEach(e => { if(zaehltNicht(e.anlass)) return; const h = Number(e.stunden)||0; if(e.art === "Mehrzeit") mehr += h; else minder += h; });
+  $("#sum").innerHTML = `<div><span class="l">Mehrzeiten</span><span class="v">+${fmt(mehr)}</span></div><div><span class="l">Minderzeiten</span><span class="v">${minder ? "−"+fmt(minder) : "0"}</span></div><div><span class="l">Saldo</span><span class="v">${mehr - minder > 0 ? "+" : ""}${fmt(mehr - minder)}</span></div><div><span class="l">Nicht gemeldet</span><span class="v">${offen}</span></div>`;
+  $("#list").innerHTML = rows.length ? `<table><caption>${rows.length} Einträge, neueste zuerst</caption><thead><tr><th scope="col">Datum</th><th scope="col">Art</th><th scope="col">Anlass</th><th scope="col" class="num">Std.</th><th scope="col">Klasse / Fach</th><th scope="col">Bemerkung</th><th scope="col">Gemeldet</th><th scope="col"><span class="sr">Aktionen</span></th></tr></thead><tbody>${rows.map(e => `<tr>
+    <td><span aria-hidden="true">${dLong(e.datum)}</span><span class="sr">${dSpoken(e.datum)}</span></td>
+    <td><span class="pill ${e.art === "Mehrzeit" ? "mehr" : "minder"}">${e.art === "Mehrzeit" ? "＋ Mehr" : "− Minder"}</span></td>
+    <td>${esc(e.anlass)}</td><td class="num">${fmt(Number(e.stunden)||0)}</td><td>${esc(e.klasse)}</td>
+    <td>${esc([e.vertretung ? "Vertr. für " + e.vertretung : "", e.bemerkung].filter(Boolean).join(" · "))}</td>
+    <td>${e.gemeldetAm ? `<span class="pill ok">am ${dLong(e.gemeldetAm)}</span>` : `<span class="pill neu">noch nicht</span>`}</td>
+    <td style="white-space:nowrap">${S.confirmDel === e.id
+      ? `<span class="confirm"><span>Löschen?</span><button class="btn small danger" data-del-yes="${e.id}">Ja</button><button class="btn small" data-del-no>Nein</button></span>`
+      : `<button class="btn small" data-edit="${e.id}" aria-label="Eintrag vom ${dLong(e.datum)} bearbeiten">Bearbeiten</button> <button class="btn small danger" data-del="${e.id}" aria-label="Eintrag vom ${dLong(e.datum)} löschen">Löschen</button>`}</td></tr>`).join("")}</tbody></table>`
+    : `<div class="empty">Noch keine Einträge. Erfassen Sie oben die erste Mehr- oder Minderzeit.</div>`;
+  if(!S.storeOk) $("#optMsg").innerHTML = `<span class="msg bad">Speichern im Browser ist blockiert. Bitte kein privates Fenster verwenden.</span>`;
+}
+function resetForm(){
+  S.editId = null; $("#formH").textContent = "Neuen Eintrag erfassen"; $("#saveBtn").textContent = "Eintrag speichern"; $("#cancelEdit").hidden = true;
+  $("#f-std").value = 1; $("#f-klasse").value = ""; $("#f-vertr").value = ""; $("#f-bem").value = "";
+}
+
+/* Ereignisse */
+$("#setupForm").addEventListener("submit", ev => {
+  ev.preventDefault();
+  const k = $("#u-kuerzel").value.trim();
+  if(!k){ $("#setupMsg").textContent = "Bitte ein Kürzel eintragen."; $("#setupMsg").className = "msg bad"; say("Bitte ein Kürzel eintragen."); return; }
+  S.me = k; S.start = $("#u-start").value || S.start; S.ende = $("#u-ende").value || S.ende; persist();
+  say(`Eingerichtet für Kürzel ${k}`); showApp(); $("#f-datum").focus();
+});
+$("#setupCancel").addEventListener("click", showApp);
+$("#editSetup").addEventListener("click", () => showSetup(true));
+$("#f-anlass").addEventListener("change", e => { const a = ART_HINT[e.target.value]; if(a) (a === "Mehrzeit" ? $("#f-mehr") : $("#f-minder")).checked = true; $("#anlassHelp").textContent = zaehltNicht(e.target.value) ? "Wird dokumentiert, aber mit 0 Stunden angerechnet." : ""; });
+$("#minus").addEventListener("click", () => { const i = $("#f-std"); i.value = Math.max(0.5, (Number(i.value)||1) - 0.5); say(`${fmt(Number(i.value))} Stunden`); });
+$("#plus").addEventListener("click", () => { const i = $("#f-std"); i.value = (Number(i.value)||0) + 0.5; say(`${fmt(Number(i.value))} Stunden`); });
+$("#cancelEdit").addEventListener("click", () => { resetForm(); say("Bearbeiten abgebrochen"); });
+$("#entryForm").addEventListener("submit", ev => {
+  ev.preventDefault();
+  const f = {datum:$("#f-datum").value, art:document.querySelector('input[name="art"]:checked').value, anlass:$("#f-anlass").value,
+    stunden:Number(String($("#f-std").value).replace(",", ".")) || 0, klasse:$("#f-klasse").value.trim(), vertretung:$("#f-vertr").value.trim(), bemerkung:$("#f-bem").value.trim()};
+  let err = "";
+  if(!f.datum) err = "Bitte ein Datum eintragen.";
+  else if(!(f.stunden > 0)) err = "Bitte die Stundenzahl eintragen.";
+  else if(toD(f.datum) < toD(S.start) || toD(f.datum) > toD(S.ende)) err = "Das Datum liegt außerhalb des Schuljahres.";
+  if(err){ $("#formMsg").textContent = err; $("#formMsg").className = "msg bad"; say(err); return; }
+  const wasEdit = !!S.editId;
+  if(wasEdit){ const i = S.e.findIndex(e => e.id === S.editId); S.e[i] = {...S.e[i], ...f, gemeldetAm:""}; }
+  else S.e.push({...f, id:uid(), erfasst:new Date().toISOString(), gemeldetAm:""});
+  persist();
+  const w = weekOf(f.datum);
+  const msg = `${wasEdit ? "Geändert" : "Gespeichert"}: ${f.art} ${fmt(f.stunden)} Stunden am ${dLong(f.datum)}${w > 0 ? `, Schulwoche ${w}` : ""}.${wasEdit ? " Wird mit der nächsten Meldung erneut übermittelt." : ""}`;
+  $("#formMsg").textContent = msg; $("#formMsg").className = "msg"; say(msg);
+  resetForm(); render(); $("#f-datum").focus();
+});
+document.addEventListener("click", ev => {
+  const ed = ev.target.closest("[data-edit]");
+  if(ed){ const e = S.e.find(x => x.id === ed.dataset.edit); if(!e) return; S.editId = e.id;
+    $("#formH").textContent = `Eintrag vom ${dLong(e.datum)} bearbeiten`; $("#saveBtn").textContent = "Änderung speichern"; $("#cancelEdit").hidden = false;
+    $("#f-datum").value = e.datum; (e.art === "Minderzeit" ? $("#f-minder") : $("#f-mehr")).checked = true; $("#f-anlass").value = e.anlass;
+    $("#f-std").value = e.stunden; $("#f-klasse").value = e.klasse || ""; $("#f-vertr").value = e.vertretung || ""; $("#f-bem").value = e.bemerkung || "";
+    $("#formH").scrollIntoView({behavior:"smooth"}); $("#f-datum").focus({preventScroll:true}); return; }
+  const dl = ev.target.closest("[data-del]"); if(dl){ S.confirmDel = dl.dataset.del; render(); $(`[data-del-yes="${dl.dataset.del}"]`)?.focus(); return; }
+  if(ev.target.closest("[data-del-no]")){ S.confirmDel = null; render(); return; }
+  const dy = ev.target.closest("[data-del-yes]");
+  if(dy){ const e = S.e.find(x => x.id === dy.dataset.delYes); S.e = S.e.filter(x => x.id !== dy.dataset.delYes); S.confirmDel = null; persist(); render();
+    say(e && e.gemeldetAm ? "Gelöscht. Der Eintrag war schon gemeldet. Bitte der Schulleitung kurz Bescheid geben." : "Eintrag gelöscht"); return; }
+});
+async function makeReport(all){
+  const list = S.e.filter(e => all || !e.gemeldetAm);
+  if(!list.length) return;
+  const now = new Date().toISOString();
+  const data = {typ:"flexistunden-meldung", version:1, kuerzel:S.me, erstellt:now, schuljahrBeginn:S.start,
+    eintraege:list.map(e => ({id:e.id, datum:e.datum, art:e.art, anlass:e.anlass, stunden:e.stunden, klasse:e.klasse, vertretung:e.vertretung, bemerkung:e.bemerkung, erfasst:e.erfasst}))};
+  const name = `Meldung_${S.me.replace(/[^A-Za-z0-9_-]/g,"_")}_${todayIso()}.txt`;
+  const how = await shareOrDownload(name, JSON.stringify(data, null, 1), `Flexistunden-Meldung ${S.me}`);
+  if(how === "aborted"){ $("#sendMsg").textContent = "Abgebrochen. Es wurde nichts als gemeldet markiert."; say($("#sendMsg").textContent); return; }
+  const t = todayIso(); S.e = S.e.map(e => list.some(x => x.id === e.id) ? {...e, gemeldetAm:t} : e); persist(); render();
+  const msg = how === "shared" ? `Meldung mit ${list.length} ${list.length === 1 ? "Eintrag" : "Einträgen"} übergeben. Bitte die E-Mail an die Schulleitung abschicken, falls noch nicht geschehen.` : `Die Datei „${name}“ mit ${list.length} ${list.length === 1 ? "Eintrag" : "Einträgen"} wird im Download-Ordner gespeichert. Bitte per E-Mail an die Schulleitung schicken.`;
+  $("#sendMsg").textContent = msg; say(msg);
+}
+$("#makeReport").addEventListener("click", () => makeReport(false));
+$("#makeAll").addEventListener("click", () => makeReport(true));
+$("#backup").addEventListener("click", async () => { const how = await shareOrDownload(`Flexistunden-Meldung-Sicherung_${S.me}_${todayIso()}.txt`, JSON.stringify({typ:"flexistunden-meldung-sicherung", me:S.me, start:S.start, ende:S.ende, e:S.e}, null, 1), "Flexistunden-Sicherung");
+  $("#optMsg").textContent = how === "aborted" ? "Abgebrochen." : how === "shared" ? "Sicherung übergeben, zum Beispiel per E-Mail an sich selbst." : "Sicherung wird im Download-Ordner gespeichert."; say($("#optMsg").textContent); });
+$("#restore").addEventListener("change", async ev => {
+  const f = ev.target.files[0]; if(!f) return;
+  try{ const d = JSON.parse(await f.text()); if(d.typ !== "flexistunden-meldung-sicherung" || !Array.isArray(d.e)) throw 0;
+    S.me = d.me; S.start = d.start; S.ende = d.ende; S.e = d.e; persist(); showApp(); $("#optMsg").textContent = `Sicherung geladen: ${S.e.length} Einträge.`; say($("#optMsg").textContent); }
+  catch(_){ $("#optMsg").textContent = "Diese Datei ist keine gültige Sicherung."; say("Diese Datei ist keine gültige Sicherung."); }
+  ev.target.value = "";
+});
+
+/* Offline-Fähigkeit */
+if("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js").catch(() => {});
+/* Start */
+load();
+$("#f-datum").value = todayIso();
+if(S.me) showApp(); else showSetup(false);
+})();
+</script>
+</body>
+</html>
